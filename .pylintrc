@@ -1,0 +1,11 @@
+[PYLINT]
+
+jobs=0
+
+logging-format-style=new
+
+notes=TODO
+
+single-line-if-stmt=yes
+
+good-names=i, j, k, n, x, ex, _,
