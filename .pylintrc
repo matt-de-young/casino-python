@@ -6,6 +6,10 @@ logging-format-style=new
 
 notes=TODO
 
-single-line-if-stmt=yes
+min-public-methods=1
 
 good-names=i, j, k, n, x, ex, _,
+
+disable=no-else-return,
+        no-else-raise,
+        global-statement
