@@ -25,14 +25,14 @@ class Card:
 class Deck:
     """ Standard 52 card deck """
     def __init__(self) -> None:
-        self.cards: List[Card] = []
-        for suit in ["♣", "♦", "♥", "♠"]:
-            for rank in range(1, 14):
-                self.cards.append(Card(suit, rank))
+        self.cards: List[Card] = [
+            Card(suit, rank) for suit in ["♣", "♦", "♥", "♠"] for rank in range(1, 14)
+        ]
+
 
     def shuffle(self) -> "Deck":
         """ Shuffles the cards in the deck """
-        for i in range(len(self.cards) - 1, 0, -1):
+        for i in range(len(self.cards)):
             x = random.randint(0, i)
             self.cards[i], self.cards[x] = self.cards[x], self.cards[i]
         return self

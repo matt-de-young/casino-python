@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import click
 
-from cards import Card, Deck, Hand
+from cards import Deck, Hand
 
 
 PLAYER_BANK: int
@@ -12,7 +12,10 @@ class BlackjackHand(Hand):
     """ A hand of cards for Blackjack """
 
     def __str__(self) -> str:
-        return f"{super(BlackjackHand, self).__str__()} : {self.value if self.value <= 21 else 'bust'}"
+        return (
+            f"{super(BlackjackHand, self).__str__()}"
+            f" : {self.value if self.value <= 21 else 'bust'}"
+        )
 
     def render(self, reveal: bool = False) -> str:
         """ Represents the hand as a string including face down cards by default """
@@ -38,8 +41,8 @@ class BlackjackHand(Hand):
         if not any(x.rank == 1 for x in self.cards) or self._raw_value <= 21:
             return self._raw_value
 
-        # Aces can be either 1 or 11
         soft_value: int = self._raw_value
+        # Count Aces & try to get a non-bust score
         for _ in range(sum([1 if x.rank == 1 else 0 for x in self.cards])):
             soft_value -= 10
             if soft_value <= 21:
@@ -54,8 +57,8 @@ class BlackjackHand(Hand):
 
     @property
     def is_soft(self) -> bool:
-        """ Returns if the hand is could possibly be a lower value or not """
-        return sum([x.rank if x.rank < 9 else 10 for x in self.cards]) == self.value
+        """ Returns True if there are aces being counted as 11 """
+        return sum([x.rank if x.rank <= 9 else 10 for x in self.cards]) != self.value
 
 
 def render_table(
@@ -79,12 +82,15 @@ def play_hand(bet: int) -> int:
 
     # Check for blackjack
     if player_hand.value == 21 and dealer_hand.value == 21:
+        render_table(dealer_hand, player_hand, reveal_dealer=True)
         click.echo("Stand-off.")
         return bet
     elif dealer_hand.value == 21:
+        render_table(dealer_hand, player_hand, reveal_dealer=True)
         click.echo("Dealer Blackjack.")
         return 0
     elif player_hand.value == 21:
+        render_table(dealer_hand, player_hand, reveal_dealer=True)
         click.echo("Blackjack!")
         return int(bet * 1.5)
 
@@ -95,7 +101,8 @@ def play_hand(bet: int) -> int:
             if player_hand.is_bust:
                 break
         else:
-            while dealer_hand.value < 17 and not dealer_hand.is_soft:
+            # Play out the dealer's hand
+            while dealer_hand.value < 17 or (dealer_hand.is_soft and dealer_hand.value == 17):
                 dealer_hand.add(deck.draw())
                 render_table(dealer_hand, player_hand)
             break
@@ -116,13 +123,12 @@ def validate_bet(value: Any) -> Optional[int]:
     """ Validates bet input to make sure it's valid """
     global PLAYER_BANK
     try:
-        if int(value) >= PLAYER_BANK:
+        if int(value) > PLAYER_BANK:
             raise click.BadParameter(f"You don't have enough money to bet ${value}", param=value)
         else:
             return int(value)
     except ValueError:
         raise click.BadParameter("Not a valid bet.", param=value)
-    # return value
 
 
 @click.command()
